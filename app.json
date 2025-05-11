@@ -25,6 +25,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-voice/voice",
       "expo-router",
       [
         "expo-splash-screen",
@@ -33,10 +34,6 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
-        },
-        "expo-audio",
-        {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
         }
       ]
     ],

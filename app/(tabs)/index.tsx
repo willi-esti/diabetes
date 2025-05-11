@@ -1,166 +1,234 @@
-import Voice from '@react-native-voice/voice';
-import { ElevenLabsClient } from 'elevenlabs';
-// Changed import for expo-audio to default import
-import Audio from 'expo-audio';
-import { useEffect, useState } from 'react';
-import { Button, Platform, StyleSheet, Text, View } from 'react-native';
+import { Component } from 'react';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableHighlight,
+  View,
+} from 'react-native';
 
-// Initialize ElevenLabs client (replace with your actual API key)
-const ELEVENLABS_API_KEY = 'YOUR_ELEVENLABS_API_KEY'; // Ensure placeholder
-const client = new ElevenLabsClient({
-  apiKey: ELEVENLABS_API_KEY,
-});
+import Voice, {
+  type SpeechErrorEvent,
+  type SpeechRecognizedEvent,
+  type SpeechResultsEvent,
+} from '@react-native-voice/voice';
 
-export default function HomeScreen() {
-  const [isRecording, setIsRecording] = useState(false);
-  const [recognizedText, setRecognizedText] = useState('');
-  const [aiResponse, setAiResponse] = useState('');
-  // Changed type to use Audio.Sound from default import
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+type Props = {};
+type State = {
+  recognized: string;
+  pitch: string;
+  error: string;
+  end: string;
+  started: string;
+  results: string[];
+  partialResults: string[];
+};
 
-  useEffect(() => {
-    // Setup Voice event listeners
-    Voice.onSpeechStart = () => setIsRecording(true);
-    Voice.onSpeechEnd = () => setIsRecording(false);
-    Voice.onSpeechError = (e) => console.error('onSpeechError: ', e);
-    Voice.onSpeechResults = (e) => {
-      if (e.value && e.value.length > 0) {
-        setRecognizedText(e.value[0]);
-        // Simple AI interaction placeholder
-        handleSimpleAIInteraction(e.value[0]);
-      }
-    };
+class VoiceTest extends Component<Props, State> {
+  state = {
+    recognized: '',
+    pitch: '',
+    error: '',
+    end: '',
+    started: '',
+    results: [],
+    partialResults: [],
+  };
 
-    // Request microphone permissions using Audio.requestPermissionsAsync
-    (async () => {
-      if (Platform.OS !== 'web') {
-        const permissions = await Audio.requestPermissionsAsync();
-        if (permissions.status !== 'granted') {
-          alert('Sorry, we need microphone permissions to make this work!');
-        }
-      }
-    })();
+  constructor(props: Props) {
+    super(props);
+    Voice.onSpeechStart = this.onSpeechStart;
+    Voice.onSpeechRecognized = this.onSpeechRecognized;
+    Voice.onSpeechEnd = this.onSpeechEnd;
+    Voice.onSpeechError = this.onSpeechError;
+    Voice.onSpeechResults = this.onSpeechResults;
+    Voice.onSpeechPartialResults = this.onSpeechPartialResults;
+    Voice.onSpeechVolumeChanged = this.onSpeechVolumeChanged;
+  }
 
-    return () => {
-      // Cleanup Voice event listeners and sound object
-      Voice.destroy().then(Voice.removeAllListeners);
-      sound?.unloadAsync();
-    };
-  }, [sound]);
+  componentWillUnmount() {
+    Voice.destroy().then(Voice.removeAllListeners);
+  }
 
-  const startRecording = async () => {
-    setRecognizedText('');
-    setAiResponse('');
+  onSpeechStart = (e: any) => {
+    console.log('onSpeechStart: ', e);
+    this.setState({
+      started: '√',
+    });
+  };
+
+  onSpeechRecognized = (e: SpeechRecognizedEvent) => {
+    console.log('onSpeechRecognized: ', e);
+    this.setState({
+      recognized: '√',
+    });
+  };
+
+  onSpeechEnd = (e: any) => {
+    console.log('onSpeechEnd: ', e);
+    this.setState({
+      end: '√',
+    });
+  };
+
+  onSpeechError = (e: SpeechErrorEvent) => {
+    console.log('onSpeechError: ', e);
+    this.setState({
+      error: JSON.stringify(e.error),
+    });
+  };
+
+  onSpeechResults = (e: SpeechResultsEvent) => {
+    console.log('onSpeechResults: ', e);
+    this.setState({
+      results: e.value && e.value?.length > 0 ? e.value : [],
+    });
+  };
+
+  onSpeechPartialResults = (e: SpeechResultsEvent) => {
+    console.log('onSpeechPartialResults: ', e);
+    this.setState({
+      partialResults: e.value && e.value?.length > 0 ? e.value : [],
+    });
+  };
+
+  onSpeechVolumeChanged = (e: any) => {
+    console.log('onSpeechVolumeChanged: ', e);
+    this.setState({
+      pitch: e.value,
+    });
+  };
+
+  _startRecognizing = async () => {
+    this.setState({
+      recognized: '',
+      pitch: '',
+      error: '',
+      started: '',
+      results: [],
+      partialResults: [],
+      end: '',
+    });
+
     try {
       await Voice.start('en-US');
     } catch (e) {
-      console.error('Failed to start recording', e);
+      console.error(e);
     }
   };
 
-  const stopRecording = async () => {
+  _stopRecognizing = async () => {
     try {
       await Voice.stop();
     } catch (e) {
-      console.error('Failed to stop recording', e);
+      console.error(e);
     }
   };
 
-  const handleSimpleAIInteraction = async (text: string) => {
-    // Placeholder: Echo the recognized text or provide a canned response
-    const responseText = `You said: ${text}. This is a placeholder AI response.`;
-    setAiResponse(responseText);
-    await playTextToSpeech(responseText);
-  };
-
-  const playTextToSpeech = async (text: string) => {
-    if (ELEVENLABS_API_KEY === 'YOUR_ELEVENLABS_API_KEY') {
-      console.warn('ElevenLabs API key not set. Skipping TTS.');
-      setAiResponse(aiResponse + ' (TTS Skipped: API Key Missing)');
-      return;
-    }
+  _cancelRecognizing = async () => {
     try {
-      const audioStream = await client.generate({
-        voice: 'Rachel', // You can choose other voices
-        text,
-        model_id: 'eleven_multilingual_v2', // Or other models
-      });
-
-      // The stream is a ReadableStream. We need to collect it into a buffer.
-      const chunks = [];
-      for await (const chunk of audioStream) {
-        chunks.push(chunk);
-      }
-      const data = new Uint8Array(
-        chunks.reduce((acc, val) => acc.concat(Array.from(val)), []),
-      );
-
-      // Create a blob and then a URI
-      const blob = new Blob([data], { type: 'audio/mpeg' });
-      const uri = URL.createObjectURL(blob);
-
-      if (sound) {
-        await sound.unloadAsync();
-      }
-
-      // Corrected sound creation and playback using new Audio.Sound()
-      const newSoundInstance = new Audio.Sound();
-      await newSoundInstance.loadAsync({ uri });
-      setSound(newSoundInstance);
-      await newSoundInstance.playAsync();
-    } catch (error) {
-      console.error('Error playing TTS:', error);
-      setAiResponse(aiResponse + ' (TTS Error)');
+      await Voice.cancel();
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-      }}
-    >
-      <Text style={styles.titleContainer}>Talk with AI</Text>
-      <Button
-        title={isRecording ? 'Stop Talking' : 'Start Talking'}
-        onPress={isRecording ? stopRecording : startRecording}
-      />
-      {recognizedText ? (
-        <Text style={styles.textOutput}>You said: {recognizedText}</Text>
-      ) : null}
-      {aiResponse ? (
-        <Text style={styles.textOutput}>AI says: {aiResponse}</Text>
-      ) : null}
-    </View>
-  );
+  _destroyRecognizer = async () => {
+    try {
+      await Voice.destroy();
+    } catch (e) {
+      console.error(e);
+    }
+    this.setState({
+      recognized: '',
+      pitch: '',
+      error: '',
+      started: '',
+      results: [],
+      partialResults: [],
+      end: '',
+    });
+  };
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.welcome}>Welcome to React Native Voice!</Text>
+        <Text style={styles.instructions}>
+          Press the button and start speaking.
+        </Text>
+        <Text style={styles.stat}>{`Started: ${this.state.started}`}</Text>
+        <Text style={styles.stat}>{`Recognized: ${
+          this.state.recognized
+        }`}</Text>
+        <Text style={styles.stat}>{`Pitch: ${this.state.pitch}`}</Text>
+        <Text style={styles.stat}>{`Error: ${this.state.error}`}</Text>
+        <Text style={styles.stat}>Results</Text>
+        {this.state.results.map((result, index) => {
+          return (
+            <Text key={`result-${index}`} style={styles.stat}>
+              {result}
+            </Text>
+          );
+        })}
+        <Text style={styles.stat}>Partial Results</Text>
+        {this.state.partialResults.map((result, index) => {
+          return (
+            <Text key={`partial-result-${index}`} style={styles.stat}>
+              {result}
+            </Text>
+          );
+        })}
+        <Text style={styles.stat}>{`End: ${this.state.end}`}</Text>
+        <TouchableHighlight onPress={this._startRecognizing}>
+          <Image style={styles.button} source={require('./button.png')} />
+        </TouchableHighlight>
+        <TouchableHighlight onPress={this._stopRecognizing}>
+          <Text style={styles.action}>Stop Recognizing</Text>
+        </TouchableHighlight>
+        <TouchableHighlight onPress={this._cancelRecognizing}>
+          <Text style={styles.action}>Cancel</Text>
+        </TouchableHighlight>
+        <TouchableHighlight onPress={this._destroyRecognizer}>
+          <Text style={styles.action}>Destroy</Text>
+        </TouchableHighlight>
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    marginTop: 46,
-    color: 'white',
-    fontSize: 24,
+  button: {
+    width: 50,
+    height: 50,
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  welcome: {
+    fontSize: 20,
+    textAlign: 'center',
+    margin: 10,
+  },
+  action: {
+    textAlign: 'center',
+    color: '#0000FF',
+    marginVertical: 5,
     fontWeight: 'bold',
-    marginBottom: 16,
+  },
+  instructions: {
     textAlign: 'center',
+    color: '#333333',
+    marginBottom: 5,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-  textOutput: {
-    marginTop: 20,
-    fontSize: 16,
+  stat: {
     textAlign: 'center',
+    color: '#B0171F',
+    marginBottom: 1,
   },
 });
+
+export default VoiceTest;
