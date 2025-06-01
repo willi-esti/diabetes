@@ -34,26 +34,88 @@ CREATE TABLE blood_pressure_logs (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table for tracking workouts
-CREATE TABLE workouts (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    workout_date DATE NOT NULL,
-    type VARCHAR(100) NOT NULL,
-    duration_minutes INTEGER,
-    calories_burned INTEGER,
-    note TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Table for workout sessions
+CREATE TABLE workout_sessions (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Table for kinds of workouts
+-- Table for workout types
 CREATE TABLE workout_types (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  description TEXT, -- e.g. "Cardio", "Strength Training"
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Table for workouts
+CREATE TABLE workouts (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL,
+  workout_type_id INTEGER REFERENCES workout_types(id) ON DELETE SET NULL,
+  session_id INTEGER REFERENCES workout_sessions(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  duration_seconds INTEGER, -- e.g. 3600 for 1 hour
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+-- Table for exercise library
+CREATE TABLE exercise_library (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    force TEXT,
+    level TEXT,
+    mechanic TEXT,
+    equipment TEXT,
+    primary_muscles TEXT[],
+    secondary_muscles TEXT[],
+    instructions TEXT[],
+    category TEXT,
+    images TEXT[],
+    image_urls TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Table for exercises
+-- This table stores exercises that can be used in workout sessions
+-- It can include both predefined exercises and custom user-defined exercises
+CREATE TABLE exercises (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  category TEXT, -- e.g. "Strength", "Cardio"
+  default_unit TEXT CHECK (default_unit IN ('kg', 'lbs', 'bodyweight', 'minutes', 'reps')) DEFAULT 'kg',
+  body_part TEXT, -- optional: Chest, Legs, etc.
+  is_custom BOOLEAN DEFAULT FALSE,
+  user_id UUID -- null if public/shared exercise
+);
+
+
+CREATE TABLE workout_exercises (
+  id SERIAL PRIMARY KEY,
+  session_id INTEGER REFERENCES workout_sessions(id) ON DELETE CASCADE,
+  exercise_id INTEGER REFERENCES exercises(id),
+  position INTEGER, -- order of the exercise in the session
+  notes TEXT
+);
+
+CREATE TABLE sets (
+  id SERIAL PRIMARY KEY,
+  workout_exercise_id INTEGER REFERENCES workout_exercises(id) ON DELETE CASCADE,
+  set_number INTEGER,
+  reps INTEGER,
+  weight DECIMAL(5,2), -- e.g. 100.50 kg
+  rir INTEGER, -- reps in reserve (optional)
+  rpe DECIMAL(3,1), -- e.g. 7.5 (optional)
+  tempo TEXT, -- e.g. "3-1-1"
+  rest_seconds INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Table for tracking weight

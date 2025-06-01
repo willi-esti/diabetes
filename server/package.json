@@ -5,6 +5,10 @@
     "start": "ts-node src/app.ts",
     "prod": "ts-node --transpile-only src/app.ts",
     "build": "tsc",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:rul": "docker compose down && docker volume rm -f server_db_data && docker compose up",
     "dev": "ts-node-dev src/app.ts"
   },
   "dependencies": {
@@ -13,17 +17,20 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "joi": "^17.13.3",
+    "jq": "^1.7.2",
     "jsonwebtoken": "^9.0.2",
-    "ts-node": "^10.9.2"
+    "serve": "^14.2.4",
+    "ts-node": "^10.9.2",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.21",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
-    "rimraf": "^6.0.1",
     "typescript": "^5.8.3"
   }
 }

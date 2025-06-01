@@ -28,15 +28,34 @@ services:
       - db
 
   pgadmin:
-    container_name: pgadmin
     image: dpage/pgadmin4
+    container_name: pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PG_SERVER_NAME: ${PG_SERVER_NAME}
+      PG_SERVER_HOST: ${PG_SERVER_HOST}
+      PG_SERVER_PORT: ${PG_SERVER_PORT}
+      PG_SERVER_USER: ${PG_SERVER_USER}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    #  - ./docker/entrypoint.sh:/docker-entrypoint-initdb.d/entrypoint.sh:ro
     ports:
       - '8080:80'
     depends_on:
       - db
 
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+    ports:
+      - '80:80'
+    depends_on:
+      - app
+
 volumes:
   db_data:
+  pgadmin_data:
