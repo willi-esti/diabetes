@@ -40,7 +40,7 @@ services:
       PG_SERVER_USER: ${PG_SERVER_USER}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-    #  - ./docker/entrypoint.sh:/docker-entrypoint-initdb.d/entrypoint.sh:ro
+    #  - ./docker/entrypoint.sh:/docker-entrypoint-initdb.d/entrypoint.sh:ro # useless for now
     ports:
       - '8080:80'
     depends_on:
