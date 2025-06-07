@@ -18,7 +18,7 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./:/usr/src/app
-    command: npm install && npm run dev
+    command: npm run dev
     environment:
       NODE_ENV: development
       DATABASE_URL: postgres://user:password@db:5432/diabetes

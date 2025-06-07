@@ -1,5 +1,12 @@
 # 💪 My Personal Health Assistant – React Native App
 
+## Links
+
+https://diatribe.org/diabetes-technology/nightscout-how-get-started-cgm-cloud
+https://github.com/nightscout/cgm-remote-monitor
+https://nightscout.github.io/
+https://github.com/NightscoutFoundation/xDrip/tree/master/app/src/main/java/com/eveningoutpost/dexdrip
+
 ## 🧠 Vision
 
 Build a **smart health assistant** that helps people (including myself) understand and optimize their **blood sugar levels** by tracking key lifestyle data like workouts, food, steps, sleep, and more.
