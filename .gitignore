@@ -5,6 +5,7 @@
 # Node.js
 images
 tmp
+logs
 
 # dependencies
 node_modules/

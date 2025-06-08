@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import express from 'express';
-import path from 'path';
+import { corsMiddleware } from './middleware/cors';
+import { loggingMiddleware } from './middleware/logger';
 import { setRoutes } from './routes/index';
+import logger from './utils/logger';
 
 dotenv.config();
 
@@ -10,12 +12,17 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Trust the first proxy
+app.set('trust proxy', 'loopback');
 
-// Serve static files from public directory
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// CORS Middleware
+app.use(corsMiddleware);
+
+// Logging Middleware
+app.use(loggingMiddleware);
 
 setRoutes(app);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    logger.info(`Server is running on http://localhost:${PORT}`);
 });
