@@ -43,12 +43,22 @@ paths:
                                         properties:
                                             total:
                                                 type: integer
+                                                description: Total number of exercises available
                                             page:
                                                 type: integer
+                                                description: Current page number
                                             limit:
                                                 type: integer
+                                                description: Number of exercises per page
                                             totalPages:
                                                 type: integer
+                                                description: Total number of pages available
+                                            hasMore:
+                                                type: boolean
+                                                description: Indicates if there are more pages after the current one
+                                            count:
+                                                type: integer
+                                                description: Number of results in the current page
                 '500':
                     description: Failed to fetch exercises
 components:

@@ -24,6 +24,8 @@ export class ExercisesController {
                     page,
                     limit,
                     totalPages: Math.ceil(total / limit),
+                    hasMore: page < Math.ceil(total / limit),
+                    count: exercises.length,
                 },
             });
         } catch (error) {
