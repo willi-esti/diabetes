@@ -26,3 +26,5 @@ setRoutes(app);
 app.listen(PORT, () => {
     logger.info(`Server is running on http://localhost:${PORT}`);
 });
+
+export default app;
