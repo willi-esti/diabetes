@@ -61,6 +61,119 @@ paths:
                                                 description: Number of results in the current page
                 '500':
                     description: Failed to fetch exercises
+    /users/register:
+        post:
+            summary: Register a new user
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - username
+                                - email
+                                - password
+                            properties:
+                                username:
+                                    type: string
+                                email:
+                                    type: string
+                                password:
+                                    type: string
+            responses:
+                '201':
+                    description: User registered
+                '400':
+                    description: Missing fields
+                '409':
+                    description: Email already registered
+                '500':
+                    description: Registration failed
+    /users/login:
+        post:
+            summary: Login and get access/refresh tokens
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - email
+                                - password
+                            properties:
+                                email:
+                                    type: string
+                                password:
+                                    type: string
+            responses:
+                '200':
+                    description: Tokens returned
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    accessToken:
+                                        type: string
+                                    refreshToken:
+                                        type: string
+                '400':
+                    description: Missing fields
+                '401':
+                    description: Invalid credentials
+                '500':
+                    description: Login failed
+    /users/refresh-token:
+        post:
+            summary: Refresh access token
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - refreshToken
+                            properties:
+                                refreshToken:
+                                    type: string
+            responses:
+                '200':
+                    description: New access token
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    accessToken:
+                                        type: string
+                '400':
+                    description: Missing refresh token
+                '403':
+                    description: Invalid refresh token
+                '404':
+                    description: User not found
+    /users/logout:
+        post:
+            summary: Logout and invalidate refresh token
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - refreshToken
+                            properties:
+                                refreshToken:
+                                    type: string
+            responses:
+                '200':
+                    description: Logged out
+                '500':
+                    description: Logout failed
 components:
     schemas:
         Exercise:
